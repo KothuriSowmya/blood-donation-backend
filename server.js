@@ -22,14 +22,24 @@ app.use(cors({
 app.use(express.json()); 
 
 // --- Database Connection ---
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB Connected Successfully'))
-  .catch(err => console.error('MongoDB Connection Error:', err));
+if (!process.env.MONGO_URI) {
+  console.error('❌ MONGO_URI is not defined in environment variables');
+} else {
+  mongoose.connect(process.env.MONGO_URI, {
+    serverSelectionTimeoutMS: 5000,
+  })
+    .then(() => console.log('✅ MongoDB Connected Successfully'))
+    .catch(err => console.error('❌ MongoDB Connection Error:', err));
+}
 
 // --- A Test Route ---
-// Go to http://localhost:5001 in your browser to see this
 app.get('/', (req, res) => {
   res.send('BloodDonation API is up and running!');
+});
+
+// Handle favicon requests
+app.get('/favicon.ico', (req, res) => {
+  res.status(204).end();
 });
 
 // --- API Routes ---
@@ -40,12 +50,27 @@ app.use('/api/request', require('./routes/RequestRoutes'));
 app.use("/api/host-drive", require("./routes/hostDriveRoutes"));
 app.use("/api/donorRegistration", require("./routes/DonorRegistrationRoutes"));
 
+// --- Error Handling Middleware ---
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({ 
+    error: 'Internal Server Error',
+    message: err.message 
+  });
+});
 
-
-
-
+// --- 404 Handler ---
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found' });
+});
 
 // --- Start Server ---
-app.listen(PORT, () => {
-  console.log(`Server running on ${PORT}`);
-});
+// For local development
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`Server running on ${PORT}`);
+  });
+}
+
+// Export for Vercel serverless
+module.exports = app;
