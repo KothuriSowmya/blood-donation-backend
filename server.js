@@ -16,14 +16,21 @@ const allowedOrigins = process.env.FRONTEND_URL
   ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
   : ["http://localhost:5173"];
 
+console.log('🔧 FRONTEND_URL from env:', process.env.FRONTEND_URL);
+console.log('✅ Allowed Origins:', allowedOrigins);
+
 app.use(cors({
   origin: function (origin, callback) {
+    console.log('📨 Request from origin:', origin);
+    
     // Allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
     
     if (allowedOrigins.indexOf(origin) !== -1) {
+      console.log('✅ Origin allowed:', origin);
       callback(null, true);
     } else {
+      console.log('❌ Origin blocked:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
