@@ -1,5 +1,5 @@
 const express = require('express');
-const Request = require("../models/request");
+const Request = require("../models/Request");
 
 // --------------------------------------------------------
 // @desc    Create a blood request

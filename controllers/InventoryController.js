@@ -1,5 +1,5 @@
 const express = require('express');
-const Inventory = require("../models/inventory");
+const Inventory = require("../models/Inventory");
 
 //
 // @desc    Add blood stock to inventory
