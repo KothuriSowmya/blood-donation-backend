@@ -42,15 +42,47 @@ app.use(cors({
 app.use(express.json()); 
 
 // --- Database Connection ---
-if (!process.env.MONGO_URI) {
-  console.error('❌ MONGO_URI is not defined in environment variables');
-} else {
-  mongoose.connect(process.env.MONGO_URI, {
-    serverSelectionTimeoutMS: 5000,
-  })
-    .then(() => console.log('✅ MongoDB Connected Successfully'))
-    .catch(err => console.error('❌ MongoDB Connection Error:', err));
-}
+let isConnected = false;
+
+const connectDB = async () => {
+  if (isConnected) {
+    console.log('✅ Using existing MongoDB connection');
+    return;
+  }
+
+  if (!process.env.MONGO_URI) {
+    console.error('❌ MONGO_URI is not defined in environment variables');
+    throw new Error('MONGO_URI not defined');
+  }
+
+  try {
+    console.log('🔄 Connecting to MongoDB...');
+    await mongoose.connect(process.env.MONGO_URI, {
+      serverSelectionTimeoutMS: 30000,
+      socketTimeoutMS: 30000,
+    });
+    isConnected = true;
+    console.log('✅ MongoDB Connected Successfully');
+  } catch (err) {
+    console.error('❌ MongoDB Connection Error:', err);
+    throw err;
+  }
+};
+
+// Connect to database
+connectDB().catch(err => console.error('Failed to connect to MongoDB:', err));
+
+// Middleware to ensure DB connection
+app.use(async (req, res, next) => {
+  if (!isConnected) {
+    try {
+      await connectDB();
+    } catch (err) {
+      return res.status(503).json({ error: 'Database connection failed' });
+    }
+  }
+  next();
+});
 
 // --- A Test Route ---
 app.get('/', (req, res) => {
