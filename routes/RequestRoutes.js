@@ -6,7 +6,7 @@ const {
   getRequestById,
   updateRequest,
   deleteRequest,
-} = require("../controllers/requestController");
+} = require("../controllers/RequestController");
 const { protect } = require("../middleware/authMiddleware");
 
 router.post("/", protect, createRequest);
