@@ -12,8 +12,21 @@ const PORT = process.env.PORT || 5002; // Backend will run on port 5001
 
 // --- Middlewares ---
 // Allow your React app to call this server
+const allowedOrigins = process.env.FRONTEND_URL 
+  ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
+  : ["http://localhost:5173"];
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:5173",   // ✅ allow frontend
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization"]
