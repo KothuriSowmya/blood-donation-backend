@@ -7,9 +7,11 @@ const jwt = require("jsonwebtoken");
 // POST /api/auth/register
 // --------------------------------------------------------
 exports.registerUser = async (req, res) => {
-  const { username, email, password } = req.body;  // ✅ FIXED (you missed this earlier)
+  const { username, email, password } = req.body;
 
   try {
+    console.log('📝 Register attempt:', { username, email, hasPassword: !!password });
+
     if (!username || !email || !password) {
       return res.status(400).json({ msg: "All fields are required" });
     }
@@ -31,11 +33,12 @@ exports.registerUser = async (req, res) => {
     });
 
     await newUser.save();
+    console.log('✅ User registered successfully:', email);
 
     res.status(201).json({ msg: "User registered successfully!" });
   } catch (error) {
-    console.error(error.message);
-    res.status(500).json({ msg: "Server Error" });
+    console.error('❌ Register error:', error);
+    res.status(500).json({ msg: "Server Error", error: error.message });
   }
 };
 
@@ -47,6 +50,8 @@ exports.loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
+    console.log('🔐 Login attempt:', { email, hasPassword: !!password });
+
     if (!email || !password)
       return res.status(400).json({ msg: "Email and password are required" });
 
@@ -63,6 +68,8 @@ exports.loginUser = async (req, res) => {
       expiresIn: "24h",
     });
 
+    console.log('✅ Login successful:', email);
+
     res.json({
       msg: "Login successful",
       token,
@@ -73,8 +80,8 @@ exports.loginUser = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error(error.message);
-    res.status(500).json({ msg: "Server Error" });
+    console.error('❌ Login error:', error);
+    res.status(500).json({ msg: "Server Error", error: error.message });
   }
 };
 
